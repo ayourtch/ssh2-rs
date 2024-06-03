@@ -388,25 +388,29 @@ impl Session {
             let _ = catch_unwind(AssertUnwindSafe(|| {
                 let prompter = unsafe { &mut **(abstrakt as *mut *mut P) };
 
-                let username =
-                    unsafe { slice::from_raw_parts(username as *const u8, username_len as usize) };
+                let username = if username_len > 0 {
+                    unsafe { slice::from_raw_parts(username as *const u8, username_len as usize) }
+                } else { &[] };
                 let username = String::from_utf8_lossy(username);
 
-                let instruction = unsafe {
+                let instruction = if instruction_len > 0 { unsafe {
                     slice::from_raw_parts(instruction as *const u8, instruction_len as usize)
-                };
+                } } else { &[] };
                 let instruction = String::from_utf8_lossy(instruction);
 
-                let prompts = unsafe { slice::from_raw_parts(prompts, num_prompts as usize) };
-                let responses =
-                    unsafe { slice::from_raw_parts_mut(responses, num_prompts as usize) };
+                let prompts = if num_prompts > 0 {
+                    unsafe { slice::from_raw_parts(prompts, num_prompts as usize) }
+                } else { &[] };
+                let responses = if num_prompts > 0 {
+                    unsafe { slice::from_raw_parts_mut(responses, num_prompts as usize) }
+                } else { &mut [] };
 
                 let prompts: Vec<Prompt> = prompts
                     .iter()
                     .map(|item| {
-                        let data = unsafe {
+                        let data = if item.length > 0 { unsafe {
                             slice::from_raw_parts(item.text as *const u8, item.length as usize)
-                        };
+                        } } else { &[] };
                         Prompt {
                             text: String::from_utf8_lossy(data),
                             echo: item.echo != 0,
