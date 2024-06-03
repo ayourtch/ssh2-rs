@@ -386,40 +386,31 @@ impl Session {
             // There's not much to be done with them though because the
             // signature of the callback doesn't allow reporting an error.
             let _ = catch_unwind(AssertUnwindSafe(|| {
-                if prompts.is_null() || responses.is_null() || num_prompts < 0 {
-                    return;
-                }
-
                 let prompter = unsafe { &mut **(abstrakt as *mut *mut P) };
 
-                let username = if !username.is_null() && username_len >= 0 {
-                    let username = unsafe {
-                        slice::from_raw_parts(username as *const u8, username_len as usize)
-                    };
-                    String::from_utf8_lossy(username)
-                } else {
-                    Cow::Borrowed("")
-                };
+                let username = if !username.is_null() && username_len > 0 {
+                    unsafe { slice::from_raw_parts(username as *const u8, username_len as usize) }
+                } else { &[] };
+                let username = String::from_utf8_lossy(username);
 
-                let instruction = if !instruction.is_null() && instruction_len >= 0 {
-                    let instruction = unsafe {
-                        slice::from_raw_parts(instruction as *const u8, instruction_len as usize)
-                    };
-                    String::from_utf8_lossy(instruction)
-                } else {
-                    Cow::Borrowed("")
-                };
+                let instruction = if !instruction.is_null() && instruction_len > 0 { unsafe {
+                    slice::from_raw_parts(instruction as *const u8, instruction_len as usize)
+                } } else { &[] };
+                let instruction = String::from_utf8_lossy(instruction);
 
-                let prompts = unsafe { slice::from_raw_parts(prompts, num_prompts as usize) };
-                let responses =
-                    unsafe { slice::from_raw_parts_mut(responses, num_prompts as usize) };
+                let prompts = if num_prompts > 0 {
+                    unsafe { slice::from_raw_parts(prompts, num_prompts as usize) }
+                } else { &[] };
+                let responses = if num_prompts > 0 {
+                    unsafe { slice::from_raw_parts_mut(responses, num_prompts as usize) }
+                } else { &mut [] };
 
                 let prompts: Vec<Prompt> = prompts
                     .iter()
                     .map(|item| {
-                        let data = unsafe {
+                        let data = if item.length > 0 { unsafe {
                             slice::from_raw_parts(item.text as *const u8, item.length as usize)
-                        };
+                        } } else { &[] };
                         Prompt {
                             text: String::from_utf8_lossy(data),
                             echo: item.echo != 0,
