@@ -1,6 +1,6 @@
 [package]
 name = "ssh2"
-version = "0.9.5"
+version = "0.9.5-ayourtch-fix-interactive-auth"
 authors = ["Alex Crichton <alex@alexcrichton.com>", "Wez Furlong <wez@wezfurlong.org>", "Matteo Bigoi <bigo@crisidev.org>"]
 license = "MIT OR Apache-2.0"
 keywords = ["ssh"]
